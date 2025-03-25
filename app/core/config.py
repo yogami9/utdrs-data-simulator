@@ -1,6 +1,6 @@
 import os
 from typing import Optional, List
-from pydantic import BaseSettings
+from pydantic import BaseSettings, Field
 from dotenv import load_dotenv
 
 # Load environment variables from .env file if it exists
@@ -18,7 +18,12 @@ class Settings(BaseSettings):
     
     # Simulation Settings
     SIMULATION_INTERVAL: int = int(os.getenv("SIMULATION_INTERVAL", "30"))  # seconds
-    ENABLED_SCENARIOS: List[str] = os.getenv("ENABLED_SCENARIOS", "phishing,ransomware,data_exfiltration,brute_force,insider_threat").split(",")
+    
+    # Fix for the JSON parsing error: use a custom validator
+    @property
+    def ENABLED_SCENARIOS(self) -> List[str]:
+        scenarios_str = os.getenv("ENABLED_SCENARIOS", "phishing,ransomware,data_exfiltration,brute_force,insider_threat")
+        return [s.strip() for s in scenarios_str.split(",") if s.strip()]
     
     # App Settings
     DEBUG: bool = os.getenv("DEBUG", "False").lower() in ("true", "1", "t")
